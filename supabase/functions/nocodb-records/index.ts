@@ -59,10 +59,14 @@ Deno.serve(async (req) => {
       },
     });
 
-    const data = await api.dbDataTableRow.list(TABLE_ID, {
-      limit: Number(pageSize),
-      viewId: VIEW_ID,
-      where: `(customer,eq,${CUSTOMER_FILTER})`,
+    const data = await api.request({
+      path: `/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`,
+      query: {
+        pageSize: Number(pageSize),
+        viewId: VIEW_ID,
+        where: `(customer,eq,${CUSTOMER_FILTER})`,
+      },
+      format: "json",
     });
 
     const records = Array.isArray(data) ? data : data?.list ?? [];
