@@ -1,5 +1,10 @@
 import { Api } from "npm:nocodb-sdk@0.301.3";
-import { createClient, corsHeaders } from "npm:@supabase/supabase-js@2.105.1";
+import { createClient } from "npm:@supabase/supabase-js@2.105.1";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 const NOCODB_BASE_URL = "https://nocodb.diwohub.com";
 const PROJECT_ID = "p13zr6gmg9uhscu";
