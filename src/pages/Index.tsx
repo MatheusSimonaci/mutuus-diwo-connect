@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-type Record = { id?: string | number; fields?: Record<string, any> } & Record<string, any>;
+
 
 const getId = (r: any) => r?.id ?? r?.Id ?? r?.fields?.id ?? r?.fields?.Id;
 const getTitle = (r: any) => {
