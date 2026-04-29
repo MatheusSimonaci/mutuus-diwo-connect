@@ -1,1 +1,4 @@
 project_id = "ydofhzqrqfinttblmjhd"
+
+[functions.nocodb-records]
+verify_jwt = false
