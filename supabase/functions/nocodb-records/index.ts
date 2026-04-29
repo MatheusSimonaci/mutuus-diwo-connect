@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
       },
     });
 
-    const data = await api.dbDataTableRow.list(PROJECT_ID, TABLE_ID, {
-      pageSize: Number(pageSize),
+    const data = await api.dbDataTableRow.list(TABLE_ID, {
+      limit: Number(pageSize),
       viewId: VIEW_ID,
       where: `(customer,eq,${CUSTOMER_FILTER})`,
     });
