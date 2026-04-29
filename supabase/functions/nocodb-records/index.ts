@@ -1,7 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
+import { Api } from "npm:nocodb-sdk@0.301.3";
+import { createClient, corsHeaders } from "npm:@supabase/supabase-js@2.105.1";
 
-const NOCODB_BASE = "https://nocodb.diwohub.com/api/v3/data/p13zr6gmg9uhscu/m8rb3j7y9m5ijxn/records";
+const NOCODB_BASE_URL = "https://nocodb.diwohub.com";
+const PROJECT_ID = "p13zr6gmg9uhscu";
+const TABLE_ID = "m8rb3j7y9m5ijxn";
 const VIEW_ID = "vwonuwgxqvz1qeyn";
 const CUSTOMER_FILTER = "Mutuus";
 
@@ -45,31 +47,26 @@ Deno.serve(async (req) => {
     const recordId = url.searchParams.get("recordId");
     const pageSize = url.searchParams.get("pageSize") ?? "100";
 
-    // Single record fetch
-    if (recordId) {
-      const r = await fetch(`${NOCODB_BASE}/${encodeURIComponent(recordId)}`, {
-        headers: { "xc-token": apiToken },
-      });
-      const body = await r.text();
-      return new Response(body, {
-        status: r.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const api = new Api({
+      baseURL: NOCODB_BASE_URL,
+      headers: {
+        "xc-token": apiToken,
+      },
+    });
 
-    // List records (filtered by customer = Mutuus)
-    const params = new URLSearchParams({
-      pageSize,
+    const data = await api.dbDataTableRow.list(PROJECT_ID, TABLE_ID, {
+      pageSize: Number(pageSize),
       viewId: VIEW_ID,
       where: `(customer,eq,${CUSTOMER_FILTER})`,
     });
 
-    const r = await fetch(`${NOCODB_BASE}?${params.toString()}`, {
-      headers: { "xc-token": apiToken },
-    });
-    const body = await r.text();
-    return new Response(body, {
-      status: r.status,
+    const records = Array.isArray(data) ? data : data?.list ?? [];
+    const responseBody = recordId
+      ? records.find((record: Record<string, unknown>) => String(record.Id ?? record.id) === recordId) ?? null
+      : data;
+
+    return new Response(JSON.stringify(responseBody), {
+      status: recordId && !responseBody ? 404 : 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
