@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const apiToken = Deno.env.get("NOCODB_API_TOKEN");
+    const apiToken = Deno.env.get("NOCODB_API_TOKEN")?.trim();
     if (!apiToken) {
       return new Response(JSON.stringify({ error: "Missing NOCODB_API_TOKEN" }), {
         status: 500,
@@ -79,8 +79,15 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("nocodb-records error", e);
-    return new Response(JSON.stringify({ error: String(e) }), {
+    const status = typeof e === "object" && e !== null && "response" in e
+      ? (e as { response?: { status?: number } }).response?.status
+      : undefined;
+    console.error("nocodb-records error", e instanceof Error ? e.message : String(e));
+    return new Response(JSON.stringify({
+      error: status === 401
+        ? "NocoDB rejected the configured API token. Please update NOCODB_API_TOKEN with a valid token."
+        : String(e),
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
