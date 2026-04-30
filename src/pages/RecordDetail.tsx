@@ -22,6 +22,26 @@ const RecordDetail = () => {
   const { id } = useParams();
   const [record, setRecord] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activating, setActivating] = useState(false);
+
+  const handleActivate = async () => {
+    const f = record?.fields ?? record ?? {};
+    const scenarioId = f.scenario_id ?? f.scenarioId ?? f.ScenarioId ?? id;
+    setActivating(true);
+    try {
+      const res = await fetch("https://diwo-n8n-prod-2.up.railway.app/webhook/google-maps+list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenarioId: String(scenarioId), createdAt: new Date().toISOString() }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success("Ativação iniciada com sucesso");
+    } catch (e: any) {
+      toast.error("Erro ao ativar", { description: e?.message });
+    } finally {
+      setActivating(false);
+    }
+  };
 
   useEffect(() => {
     document.title = `Registro ${id} | Diwo & Mutuus`;
