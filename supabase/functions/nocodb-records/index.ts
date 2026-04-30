@@ -1,4 +1,3 @@
-import { Api } from "npm:nocodb-sdk@0.301.3";
 import { createClient } from "npm:@supabase/supabase-js@2.105.1";
 
 const corsHeaders = {
@@ -18,7 +17,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -52,42 +50,52 @@ Deno.serve(async (req) => {
     const recordId = url.searchParams.get("recordId");
     const pageSize = url.searchParams.get("pageSize") ?? "100";
 
-    const api = new Api({
-      baseURL: NOCODB_BASE_URL,
-      headers: {
-        "xc-token": apiToken,
-      },
+    const nocoUrl = new URL(`${NOCODB_BASE_URL}/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`);
+    nocoUrl.searchParams.set("pageSize", pageSize);
+    nocoUrl.searchParams.set("viewId", VIEW_ID);
+    nocoUrl.searchParams.set("where", `(customer,eq,${CUSTOMER_FILTER})`);
+
+    const nocoRes = await fetch(nocoUrl.toString(), {
+      method: "GET",
+      headers: { "xc-token": apiToken },
     });
 
-    const data = await api.request({
-      path: `/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`,
-      query: {
-        pageSize: Number(pageSize),
-        viewId: VIEW_ID,
-        where: `(customer,eq,${CUSTOMER_FILTER})`,
-      },
-      format: "json",
-    });
+    const text = await nocoRes.text();
+    let data: any;
+    try { data = JSON.parse(text); } catch { data = text; }
 
-    const records = Array.isArray(data) ? data : data?.list ?? [];
-    const responseBody = recordId
-      ? records.find((record: Record<string, unknown>) => String(record.Id ?? record.id) === recordId) ?? null
-      : data;
+    console.log("NocoDB status:", nocoRes.status, "keys:", data && typeof data === "object" ? Object.keys(data) : typeof data);
 
-    return new Response(JSON.stringify(responseBody), {
-      status: recordId && !responseBody ? 404 : 200,
+    if (!nocoRes.ok) {
+      return new Response(JSON.stringify({ error: "NocoDB error", status: nocoRes.status, body: data }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // v3 shape: { records: [{ id, fields: {...} }], next, prev, nestedNext }
+    const records: any[] = Array.isArray(data)
+      ? data
+      : data?.records ?? data?.list ?? [];
+
+    if (recordId) {
+      const found = records.find((r: any) => {
+        const rid = r?.id ?? r?.Id ?? r?.fields?.id ?? r?.fields?.Id;
+        return String(rid) === String(recordId);
+      });
+      return new Response(JSON.stringify(found ?? null), {
+        status: found ? 200 : 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    const status = typeof e === "object" && e !== null && "response" in e
-      ? (e as { response?: { status?: number } }).response?.status
-      : undefined;
     console.error("nocodb-records error", e instanceof Error ? e.message : String(e));
-    return new Response(JSON.stringify({
-      error: status === 401
-        ? "NocoDB rejected the configured API token. Please update NOCODB_API_TOKEN with a valid token."
-        : String(e),
-    }), {
+    return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
