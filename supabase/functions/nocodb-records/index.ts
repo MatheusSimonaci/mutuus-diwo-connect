@@ -50,6 +50,43 @@ Deno.serve(async (req) => {
     const recordId = url.searchParams.get("recordId");
     const pageSize = url.searchParams.get("pageSize") ?? "100";
 
+    // PATCH: update a record's fields
+    if (req.method === "PATCH") {
+      let payload: any;
+      try { payload = await req.json(); } catch { payload = null; }
+      const targetId = recordId ?? payload?.id;
+      const fields = payload?.fields;
+      if (!targetId || !fields || typeof fields !== "object") {
+        return new Response(JSON.stringify({ error: "Missing id or fields" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const patchUrl = `${NOCODB_BASE_URL}/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`;
+      const patchRes = await fetch(patchUrl, {
+        method: "PATCH",
+        headers: {
+          "xc-token": apiToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([{ id: targetId, fields }]),
+      });
+      const patchText = await patchRes.text();
+      let patchData: any;
+      try { patchData = JSON.parse(patchText); } catch { patchData = patchText; }
+      console.log("NocoDB PATCH status:", patchRes.status);
+      if (!patchRes.ok) {
+        return new Response(JSON.stringify({ error: "NocoDB error", status: patchRes.status, body: patchData }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify(patchData), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const nocoUrl = new URL(`${NOCODB_BASE_URL}/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`);
     nocoUrl.searchParams.set("pageSize", pageSize);
     nocoUrl.searchParams.set("viewId", VIEW_ID);
