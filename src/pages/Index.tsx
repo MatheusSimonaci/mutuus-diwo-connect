@@ -112,6 +112,9 @@ const Index = () => {
                         {subtitle && (
                           <p className="mt-1 truncate text-sm text-muted-foreground">{String(subtitle)}</p>
                         )}
+                        {isDisconnected(r) && (
+                          <Badge variant="destructive" className="mt-2">desconectado</Badge>
+                        )}
                       </div>
                       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-smooth group-hover:translate-x-1 group-hover:text-primary" />
                     </div>
