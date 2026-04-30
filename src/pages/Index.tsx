@@ -52,10 +52,14 @@ const Index = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    const visible = records.filter((r) => !isTrash(r));
-    if (!q.trim()) return visible;
-    const term = q.toLowerCase();
-    return visible.filter((r) => JSON.stringify(r).toLowerCase().includes(term));
+    let visible = records.filter((r) => !isTrash(r));
+    if (q.trim()) {
+      const term = q.toLowerCase();
+      visible = visible.filter((r) => JSON.stringify(r).toLowerCase().includes(term));
+    }
+    return [...visible].sort(
+      (a, b) => Number(isDisconnected(a)) - Number(isDisconnected(b)),
+    );
   }, [q, records]);
 
   return (
