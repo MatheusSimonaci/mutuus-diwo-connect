@@ -20,6 +20,11 @@ const isTrash = (r: any) => {
   const v = f.istrash ?? f.isTrash ?? f.IsTrash;
   return v === true || v === 1 || v === "true" || v === "1";
 };
+const isDisconnected = (r: any) => {
+  const f = r?.fields ?? r;
+  const v = (f.instance_name ?? f.instanceName ?? "").toString().trim().toLowerCase();
+  return v === "sem instância" || v === "sem instancia";
+};
 const getSubtitle = (r: any) => {
   const f = r?.fields ?? r;
   return f.status ?? f.Status ?? f.stage ?? f.Stage ?? f.customer ?? f.Customer ?? null;
@@ -106,6 +111,9 @@ const Index = () => {
                         </h3>
                         {subtitle && (
                           <p className="mt-1 truncate text-sm text-muted-foreground">{String(subtitle)}</p>
+                        )}
+                        {isDisconnected(r) && (
+                          <Badge variant="destructive" className="mt-2">desconectado</Badge>
                         )}
                       </div>
                       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-smooth group-hover:translate-x-1 group-hover:text-primary" />

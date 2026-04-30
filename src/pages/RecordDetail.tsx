@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,26 @@ const RecordDetail = () => {
   const { id } = useParams();
   const [record, setRecord] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activating, setActivating] = useState(false);
+
+  const handleActivate = async () => {
+    const f = record?.fields ?? record ?? {};
+    const scenarioId = f.scenario_id ?? f.scenarioId ?? f.ScenarioId ?? id;
+    setActivating(true);
+    try {
+      const res = await fetch("https://diwo-n8n-prod-2.up.railway.app/webhook/google-maps+list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenarioId: String(scenarioId), createdAt: new Date().toISOString() }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success("Ativação iniciada com sucesso");
+    } catch (e: any) {
+      toast.error("Erro ao ativar", { description: e?.message });
+    } finally {
+      setActivating(false);
+    }
+  };
 
   useEffect(() => {
     document.title = `Registro ${id} | Diwo & Mutuus`;
@@ -71,14 +91,20 @@ const RecordDetail = () => {
           <Card className="p-10 text-center text-muted-foreground">Registro não encontrado.</Card>
         ) : (
           <>
-            <div className="mb-8">
-              <Badge variant="secondary" className="mb-3">Customer · Mutuus</Badge>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                Detalhes do registro
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                ID: <span className="font-mono">{String(id)}</span>
-              </p>
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <Badge variant="secondary" className="mb-3">Customer · Mutuus</Badge>
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                  Detalhes do registro
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  ID: <span className="font-mono">{String(id)}</span>
+                </p>
+              </div>
+              <Button variant="gold" size="lg" onClick={handleActivate} disabled={activating}>
+                {activating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                Ativar agora
+              </Button>
             </div>
             <Card className="divide-y divide-border overflow-hidden shadow-card-soft">
               {fields.length === 0 ? (
