@@ -91,14 +91,20 @@ const RecordDetail = () => {
           <Card className="p-10 text-center text-muted-foreground">Registro não encontrado.</Card>
         ) : (
           <>
-            <div className="mb-8">
-              <Badge variant="secondary" className="mb-3">Customer · Mutuus</Badge>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                Detalhes do registro
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                ID: <span className="font-mono">{String(id)}</span>
-              </p>
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <Badge variant="secondary" className="mb-3">Customer · Mutuus</Badge>
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                  Detalhes do registro
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  ID: <span className="font-mono">{String(id)}</span>
+                </p>
+              </div>
+              <Button variant="gold" size="lg" onClick={handleActivate} disabled={activating}>
+                {activating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                Ativar agora
+              </Button>
             </div>
             <Card className="divide-y divide-border overflow-hidden shadow-card-soft">
               {fields.length === 0 ? (
