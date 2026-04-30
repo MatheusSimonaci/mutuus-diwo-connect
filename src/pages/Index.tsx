@@ -13,7 +13,12 @@ import { toast } from "sonner";
 const getId = (r: any) => r?.id ?? r?.Id ?? r?.fields?.id ?? r?.fields?.Id;
 const getTitle = (r: any) => {
   const f = r?.fields ?? r;
-  return f.title ?? f.Title ?? f.name ?? f.Name ?? f.project ?? f.Project ?? `Registro ${getId(r)}`;
+  return f.scenario_name ?? f.title ?? f.Title ?? f.name ?? f.Name ?? f.project ?? f.Project ?? `Registro ${getId(r)}`;
+};
+const isTrash = (r: any) => {
+  const f = r?.fields ?? r;
+  const v = f.istrash ?? f.isTrash ?? f.IsTrash;
+  return v === true || v === 1 || v === "true" || v === "1";
 };
 const getSubtitle = (r: any) => {
   const f = r?.fields ?? r;
@@ -42,9 +47,10 @@ const Index = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return records;
+    const visible = records.filter((r) => !isTrash(r));
+    if (!q.trim()) return visible;
     const term = q.toLowerCase();
-    return records.filter((r) => JSON.stringify(r).toLowerCase().includes(term));
+    return visible.filter((r) => JSON.stringify(r).toLowerCase().includes(term));
   }, [q, records]);
 
   return (
