@@ -132,11 +132,21 @@ const RecordDetail = () => {
     }
     setSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
-        `nocodb-records?recordId=${encodeURIComponent(String(recordIdValue))}`,
-        { method: "PATCH", body: { id: recordIdValue, fields: changed } },
-      );
-      if (error) throw error;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nocodb-records?recordId=${encodeURIComponent(String(recordIdValue))}`;
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ id: recordIdValue, fields: changed }),
+      });
+      const text = await res.text();
+      let data: any; try { data = JSON.parse(text); } catch { data = text; }
+      if (!res.ok) throw new Error(data?.error ? JSON.stringify(data) : text);
       toast.success("Registro atualizado");
       setEditing(false);
       setDraft({});
