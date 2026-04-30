@@ -42,12 +42,20 @@ const RecordDetail = () => {
     })();
   }, [id]);
 
-  const fields: Array<[string, any]> =
+  const HIDDEN_FIELDS = new Set([
+    "customer", "instance_name", "subscriptionid", "lat_long", "category",
+    "other_filter", "test_mode", "pitch", "zap_farm_id", "chatbotid",
+    "snovio_list", "snovio_campaign", "test_mode_phone", "warmup",
+    "capture_email", "istrash", "geo_filter", "prompt_token_count",
+    "aiprovider", "ai_link", "is_make_active", "agent_context",
+  ]);
+  const rawFields: Array<[string, any]> =
     record?.fields && typeof record.fields === "object"
       ? Object.entries(record.fields)
       : record && typeof record === "object"
       ? Object.entries(record).filter(([k]) => k !== "fields")
       : [];
+  const fields = rawFields.filter(([k]) => !HIDDEN_FIELDS.has(k));
 
   return (
     <div className="min-h-screen bg-subtle">
