@@ -47,9 +47,13 @@ const RecordDetail = () => {
   const handleActivate = async () => {
     const f = record?.fields ?? record ?? {};
     const scenarioId = f.scenario_id ?? f.scenarioId ?? f.ScenarioId ?? id;
+    const instanceName = String(f.instance_name ?? f.instanceName ?? f.InstanceName ?? "").trim().toLowerCase();
+    const webhookUrl = instanceName === "whatsapp-mutuus"
+      ? "https://api.diwohub.com/webhook/list"
+      : "https://diwo-n8n-prod-2.up.railway.app/webhook/google-maps+list";
     setActivating(true);
     try {
-      const res = await fetch("https://diwo-n8n-prod-2.up.railway.app/webhook/google-maps+list", {
+      const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scenarioId: String(scenarioId), createdAt: new Date().toISOString() }),
