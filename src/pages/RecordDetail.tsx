@@ -115,6 +115,7 @@ const RecordDetail = () => {
   };
 
   const recordIdValue = record?.id ?? record?.Id ?? record?.fields?.id ?? record?.fields?.Id ?? id;
+  const scenarioIdValue = record?.fields?.scenario_id ?? record?.scenario_id ?? record?.fields?.scenarioId ?? record?.scenarioId;
 
   const saveEdit = async () => {
     // Only send changed fields
