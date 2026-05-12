@@ -54,22 +54,24 @@ Deno.serve(async (req) => {
     if (req.method === "PATCH") {
       let payload: any;
       try { payload = await req.json(); } catch { payload = null; }
-      const targetId = recordId ?? payload?.id;
       const fields = payload?.fields;
-      if (!targetId || !fields || typeof fields !== "object") {
-        return new Response(JSON.stringify({ error: "Missing id or fields" }), {
+      const scenarioId = payload?.scenario_id ?? payload?.fields?.scenario_id;
+      if (!scenarioId || !fields || typeof fields !== "object") {
+        return new Response(JSON.stringify({ error: "Missing scenario_id or fields" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const patchUrl = `${NOCODB_BASE_URL}/api/v3/data/${PROJECT_ID}/${TABLE_ID}/records`;
+      const { scenario_id: _omit, ...fieldsToUpdate } = fields;
+      const patchBody = [{ scenario_id: String(scenarioId), ...fieldsToUpdate }];
+      const patchUrl = `${NOCODB_BASE_URL}/api/v2/tables/${TABLE_ID}/records`;
       const patchRes = await fetch(patchUrl, {
         method: "PATCH",
         headers: {
           "xc-token": apiToken,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify([{ id: targetId, fields }]),
+        body: JSON.stringify(patchBody),
       });
       const patchText = await patchRes.text();
       let patchData: any;
