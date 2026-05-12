@@ -133,9 +133,10 @@ const RecordDetail = () => {
     }
     setSaving(true);
     try {
+      if (!scenarioIdValue) throw new Error("scenario_id não encontrado no registro");
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nocodb-records?recordId=${encodeURIComponent(String(recordIdValue))}`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nocodb-records`;
       const res = await fetch(url, {
         method: "PATCH",
         headers: {
@@ -143,7 +144,7 @@ const RecordDetail = () => {
           Authorization: `Bearer ${token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ id: recordIdValue, fields: changed }),
+        body: JSON.stringify({ scenario_id: String(scenarioIdValue), fields: changed }),
       });
       const text = await res.text();
       let data: any; try { data = JSON.parse(text); } catch { data = text; }
