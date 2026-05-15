@@ -41,13 +41,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const res = await fetch("https://api.diwohub.com/webhook/credits", {
+    const res = await fetch("https://api.diwohub.com/webhook/credits?customer=Mutuus", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ customer: "Mutuus" }),
     });
 
     const text = await res.text();
