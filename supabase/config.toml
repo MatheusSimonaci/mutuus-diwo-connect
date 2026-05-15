@@ -2,3 +2,6 @@ project_id = "ydofhzqrqfinttblmjhd"
 
 [functions.nocodb-records]
 verify_jwt = false
+
+[functions.diwo-credits]
+verify_jwt = false

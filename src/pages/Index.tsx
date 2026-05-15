@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, Search, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { ConsumptionCard } from "@/components/ConsumptionCard";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ const Index = () => {
     <div className="min-h-screen bg-subtle">
       <AppHeader />
       <main className="container py-10">
+        <ConsumptionCard />
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <Badge variant="secondary" className="mb-3">Customer · Mutuus</Badge>
